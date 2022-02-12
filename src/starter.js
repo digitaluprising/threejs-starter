@@ -1,15 +1,15 @@
+
 import {
-  BoxGeometry,
-  Clock,
-  Color,
-  Mesh,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  PerspectiveCamera,
-  PointLight,
   Scene,
-  ShaderMaterial,
   WebGLRenderer,
+  PerspectiveCamera,
+  BoxGeometry,
+  MeshStandardMaterial,
+  ShaderMaterial,
+  Mesh,
+  PointLight,
+  Color,
+  Clock
 } from 'three'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -21,115 +21,77 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 import { Pane } from 'tweakpane'
 
 class App {
-  constructor (container) {
+  constructor(container) {
     this.container = document.querySelector(container)
 
-    // this._resizeCb = () => this._onResize()
+    this._resizeCb = () => this._onResize()
   }
 
-  init2 () {
-    const { clientWidth: width, clientHeight: height } =  this.container
-    // Scene
-    const scene = new Scene()
-
-    // Objects
-    const geometry = new BoxGeometry()
-    const material = new MeshBasicMaterial({ color: 0x00ff00 })
-    const mesh = new Mesh(geometry, material)
-
-    // Camera
-    const camera = new PerspectiveCamera(75, width / height, 0.1, 1000)
-
-    const renderer = new WebGLRenderer()
-    renderer.setSize(width, height)
-
-
-    scene.add(mesh)
-    camera.position.z = 5
-
-    this.container.appendChild(renderer.domElement)
-    function animate () {
-      requestAnimationFrame(animate)
-
-      mesh.rotation.x += 0.01
-      mesh.rotation.y += 0.01
-      renderer.render(scene, camera)
-    }
-    animate()
-  }
-  init () {
+  init() {
     this._createScene()
     this._createCamera()
     this._createRenderer()
     this._createBox()
-    // this._createShadedBox()
-    // this._createLight()
+    this._createShadedBox()
+    this._createLight()
     this._createClock()
     this._addListeners()
-    // this._createControls()
-    // this._createDebugPanel()
-    this.renderer.setAnimationLoop(() => {
-      this._update()
-      this._render()
+    this._createControls()
+    this._createDebugPanel()
+
+    this._loadModel().then(() => {
+      this.renderer.setAnimationLoop(() => {
+        this._update()
+        this._render()
+      })
+
+      console.log(this)
     })
-
-    // this._loadModel().then(() => {
-
-    //   console.log(this)
-    // })
   }
 
-  destroy () {
+  destroy() {
     this.renderer.dispose()
     this._removeListeners()
   }
 
-  _update () {
+  _update() {
     const elapsed = this.clock.getElapsedTime()
 
     this.box.rotation.y = elapsed
-    this.box.rotation.z = elapsed * 0.6
+    this.box.rotation.z = elapsed*0.6
 
-    // this.shadedBox.rotation.y = elapsed
-    // this.shadedBox.rotation.z = elapsed*0.6
+    this.shadedBox.rotation.y = elapsed
+    this.shadedBox.rotation.z = elapsed*0.6
   }
 
-  _render () {
+  _render() {
     this.renderer.render(this.scene, this.camera)
   }
 
-  _createScene () {
+  _createScene() {
     this.scene = new Scene()
   }
 
-  _createCamera () {
-    this.camera = new PerspectiveCamera(
-      50,
-      this.container.clientWidth / this.container.clientHeight,
-      0.1,
-      100
-    )
+  _createCamera() {
+    this.camera = new PerspectiveCamera(75, this.container.clientWidth / this.container.clientHeight, 0.1, 100)
     this.camera.position.set(-4, 4, 10)
   }
 
-  _createRenderer () {
+  _createRenderer() {
     this.renderer = new WebGLRenderer({
       alpha: true,
-      antialias: true,
+      antialias: true
     })
 
     this.container.appendChild(this.renderer.domElement)
 
-    this.renderer.setSize(
-      this.container.clientWidth,
-      this.container.clientHeight
-    )
+    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
     this.renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio))
     this.renderer.setClearColor(0x121212)
     this.renderer.physicallyCorrectLights = true
   }
 
-  _createLight () {
+  _createLight() {
     this.pointLight = new PointLight(0xff0055, 500, 100, 2)
     this.pointLight.position.set(0, 10, 13)
     this.scene.add(this.pointLight)
@@ -138,13 +100,13 @@ class App {
   /**
    * Create a box with a PBR material
    */
-  _createBox () {
+  _createBox() {
     const geometry = new BoxGeometry(1, 1, 1, 1, 1, 1)
 
     const material = new MeshStandardMaterial({
       color: 0xffffff,
       metalness: 0.7,
-      roughness: 0.35,
+      roughness: 0.35
     })
 
     this.box = new Mesh(geometry, material)
@@ -161,13 +123,13 @@ class App {
   /**
    * Create a box with a custom ShaderMaterial
    */
-  _createShadedBox () {
+  _createShadedBox() {
     const geometry = new BoxGeometry(1, 1, 1, 1, 1, 1)
 
     const material = new ShaderMaterial({
       vertexShader: require('./shaders/sample.vertex.glsl'),
       fragmentShader: require('./shaders/sample.fragment.glsl'),
-      transparent: true,
+      transparent: true
     })
 
     this.shadedBox = new Mesh(geometry, material)
@@ -184,8 +146,8 @@ class App {
   /**
    * Load a 3D model and append it to the scene
    */
-  _loadModel () {
-    return new Promise((resolve) => {
+  _loadModel() {
+    return new Promise(resolve => {
       this.loader = new GLTFLoader()
 
       const dracoLoader = new DRACOLoader()
@@ -193,7 +155,7 @@ class App {
 
       this.loader.setDRACOLoader(dracoLoader)
 
-      this.loader.load('./model.glb', (gltf) => {
+      this.loader.load('./model.glb', gltf => {
         const mesh = gltf.scene.children[0]
 
         mesh.scale.x = 4
@@ -206,7 +168,7 @@ class App {
           vertexShader: require('./shaders/sample.vertex.glsl'),
           fragmentShader: require('./shaders/sample.fragment.glsl'),
           transparent: true,
-          wireframe: true,
+          wireframe: true
         })
 
         mesh.material = material
@@ -218,11 +180,11 @@ class App {
     })
   }
 
-  _createControls () {
+  _createControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
   }
 
-  _createDebugPanel () {
+  _createDebugPanel() {
     this.pane = new Pane()
 
     /**
@@ -232,42 +194,27 @@ class App {
 
     let params = { background: { r: 18, g: 18, b: 18 } }
 
-    sceneFolder
-      .addInput(params, 'background', { label: 'Background Color' })
-      .on('change', (e) => {
-        this.renderer.setClearColor(
-          new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
-        )
-      })
+    sceneFolder.addInput(params, 'background', { label: 'Background Color' }).on('change', e => {
+      this.renderer.setClearColor(new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255))
+    })
 
     /**
      * Box configuration
      */
     const boxFolder = this.pane.addFolder({ title: 'Box' })
 
-    boxFolder
-      .addInput(this.box.scale, 'x', { label: 'Width', min: 1, max: 8 })
-      .on('change', (e) => (this.shadedBox.scale.x = e.value))
+    boxFolder.addInput(this.box.scale, 'x', { label: 'Width', min: 1, max: 8 })
+      .on('change', e => this.shadedBox.scale.x = e.value)
 
-    boxFolder
-      .addInput(this.box.scale, 'y', { label: 'Height', min: 1, max: 8 })
-      .on('change', (e) => (this.shadedBox.scale.y = e.value))
+    boxFolder.addInput(this.box.scale, 'y', { label: 'Height', min: 1, max: 8 })
+      .on('change', e => this.shadedBox.scale.y = e.value)
 
-    boxFolder
-      .addInput(this.box.scale, 'z', { label: 'Depth', min: 1, max: 8 })
-      .on('change', (e) => (this.shadedBox.scale.z = e.value))
+    boxFolder.addInput(this.box.scale, 'z', { label: 'Depth', min: 1, max: 8 })
+      .on('change', e => this.shadedBox.scale.z = e.value)
 
-    boxFolder.addInput(this.box.material, 'metalness', {
-      label: 'Metallic',
-      min: 0,
-      max: 1,
-    })
+    boxFolder.addInput(this.box.material, 'metalness', { label: 'Metallic', min: 0, max: 1 })
 
-    boxFolder.addInput(this.box.material, 'roughness', {
-      label: 'Roughness',
-      min: 0,
-      max: 1,
-    })
+    boxFolder.addInput(this.box.material, 'roughness', { label: 'Roughness', min: 0, max: 1 })
 
     /**
      * Light configuration
@@ -275,48 +222,34 @@ class App {
     const lightFolder = this.pane.addFolder({ title: 'Light' })
 
     params = {
-      color: { r: 255, g: 0, b: 85 },
+      color: { r: 255, g: 0, b: 85 }
     }
 
-    lightFolder
-      .addInput(params, 'color', { label: 'Color' })
-      .on('change', (e) => {
-        this.pointLight.color = new Color(
-          e.value.r / 255,
-          e.value.g / 255,
-          e.value.b / 255
-        )
-      })
-
-    lightFolder.addInput(this.pointLight, 'intensity', {
-      label: 'Intensity',
-      min: 0,
-      max: 1000,
+    lightFolder.addInput(params, 'color', { label: 'Color' }).on('change', e => {
+      this.pointLight.color = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
     })
+
+    lightFolder.addInput(this.pointLight, 'intensity', { label: 'Intensity', min: 0, max: 1000 })
   }
 
-  _createClock () {
+  _createClock() {
     this.clock = new Clock()
   }
 
-  _addListeners () {
+  _addListeners() {
     window.addEventListener('resize', this._resizeCb, { passive: true })
   }
 
-  _removeListeners () {
+  _removeListeners() {
     window.removeEventListener('resize', this._resizeCb, { passive: true })
   }
 
-  _onResize () {
-    this.camera.aspect =
-      this.container.clientWidth / this.container.clientHeight
+  _onResize() {
+    this.camera.aspect = this.container.clientWidth / this.container.clientHeight
     this.camera.updateProjectionMatrix()
-    this.renderer.setSize(
-      this.container.clientWidth,
-      this.container.clientHeight
-    )
+    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
   }
 }
 
 const app = new App('#app')
-app.init2()
+app.init()
